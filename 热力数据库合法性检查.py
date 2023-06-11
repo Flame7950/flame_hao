@@ -1,5 +1,6 @@
 # 本程序用于检查济南热力集团数据库数据合法性
 # 2023-6-3  By:黄浩   Tel:18660160658
+# 2023-6-11  增加函数，对前期重复代码进行了合并    By:黄浩   
 import os
 
 import pyodbc
@@ -16,6 +17,28 @@ cnxn = pyodbc.connect(wjmc)   #为什么相对路径可以绝对路径就不行
 # cursor()使用该连接创建（并返回）一个游标或类游标的对象
 crsr = cnxn.cursor()
 
+# 函数查询线表填写错误
+def cxxb(cxnr,cxb,shnr,ts1,ts2):
+    i = 1
+    sql="SELECT "+cxnr+" FROM "+cxb
+    for row in crsr.execute(str(sql)):
+        row=str(row).replace('\',)','')
+        row=row.replace('(\'','')
+        if row not in shnr:
+            ms=ts1+"第"+ str(i) +"行，" + ts2 + "填写有误，请检查！"
+            cwxx.append(ms)
+        i+=1
+# 函数查询线表未填
+def cxxbwt(cxnr,cxb,shnr,ts1,ts2):
+    i = 1
+    sql="SELECT "+cxnr+" FROM "+cxb
+    for row in crsr.execute(str(sql)):
+        row=str(row).replace(',)','')
+        row=row.replace('(','')
+        if row == shnr:
+            ms=ts1+"第"+ str(i) +"行，" + ts2 + "未填，请检查！"
+            cwxx.append(ms)
+        i+=1
 
 sshl=('热供水','热回水')
 msfs=('直埋','架空','管廊')
@@ -28,249 +51,62 @@ gj=('40','50','65','80','100','125','150','200','250','300','350','400','450','5
 yl=('1.6','2.0','2.5')
 glbm=('和道','和光','和礼','和智','和茂','和安','和忠','和勇','和义')
 tcfs=('竣工','普查')
+gxlx=("热水","测试")
+gxfldm=("50602001000","测试")
 # 管线类型
-i = 1
-for row in crsr.execute("SELECT GXLX FROM RSLINE"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row != '热水':
-        ms="线表第"+ str(i) +'行，管线类型填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxb("GXLX","RSLINE",gxlx,"线表","管线类型")
 # 分类代码
-i = 1
-for row in crsr.execute("SELECT FLDM FROM RSLINE"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row != '50602001000':
-        ms="线表第"+ str(i) +'行，分类代码填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxb("FLDM","RSLINE",gxfldm,"线表","分类代码")
 # 起点埋深
-i = 1
-for row in crsr.execute("SELECT QDMS FROM RSLINE"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row == 'None':
-        ms="线表第"+ str(i) +'行，起点埋深未填，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("QDMS","RSLINE","None","线表","起点埋深")
 # 终点埋深
-i = 1
-for row in crsr.execute("SELECT ZDMS FROM RSLINE"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row == 'None':
-        ms="线表第"+ str(i) +'行，终点埋深未填，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("ZDMS","RSLINE","None","线表","终点埋深")
 # 起点高程
-i = 1
-for row in crsr.execute("SELECT QDGC FROM RSLINE"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row == 'None':
-        ms="线表第"+ str(i) +'行，起点高程未填，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("QDGC","RSLINE","None","线表","起点高程")
 # 终点高程
-i = 1
-for row in crsr.execute("SELECT ZDGC FROM RSLINE"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row == 'None':
-        ms="线表第"+ str(i) +'行，终点高程未填，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("ZDGC","RSLINE","None","线表","终点高程")
 # 埋设方式
-i = 1
-for row in crsr.execute("SELECT MSFS FROM RSLINE"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row not in msfs:
-        ms="线表第"+ str(i) +'行，埋设方式填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1 
+cxxb("MSFS","RSLINE",msfs,"线表","埋设方式")
 # 埋设日期
-i = 1
-for row in crsr.execute("SELECT MSRQ FROM RSLINE"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row == 'None':
-        ms="线表第"+ str(i) +'行，埋设日期未填，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("MSRQ","RSLINE","None","线表","埋设日期")
 # 管径
-i = 1
-for row in crsr.execute("SELECT GJ FROM RSLINE"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row not in gj:
-        ms="线表第"+ str(i) +'行，管径填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxb("GJ","RSLINE",gj,"线表","管径")
 #材质
-i = 1
-for row in crsr.execute("SELECT CZ FROM RSLINE"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row not in cz:
-        ms="线表第"+ str(i) +'行，材质填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxb("CZ","RSLINE",cz,"线表","材质")
 # 所在位置
-i = 1
-for row in crsr.execute("SELECT SZWZ FROM RSLINE"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row =='':
-        ms="线表第"+ str(i) +'行，所在位置未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
-# 管网级别        
-i = 1
-for row in crsr.execute("SELECT GWJB FROM RSLINE"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row not in gwjb:
-        ms="线表第"+ str(i) +'行，管网级别填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("SZWZ","RSLINE","None","线表","所在位置")
+# 管网级别
+cxxb("GWJB","RSLINE",gwjb,"线表","管网级别")     
 # 所属回路 
-i = 1
-for row in crsr.execute("SELECT SSHL FROM RSLINE"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row not in sshl:
-        ms="线表第"+ str(i) +'行，所属回路填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1 
+cxxb("SSHL","RSLINE",sshl,"线表","所属回路") 
 # 压力
-i = 1
-for row in crsr.execute("SELECT YL FROM RSLINE"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row not in yl:
-        ms="线表第"+ str(i) +'行，压力填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxb("YL","RSLINE",yl,"线表","压力") 
 # 保温方式
-i = 1
-for row in crsr.execute("SELECT BWFS FROM RSLINE"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row not in bwfs:
-        ms="线表第"+ str(i) +'行，保温方式填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxb("BWFS","RSLINE",bwfs,"线表","保温方式") 
 # 保温套管性质
-i = 1
-for row in crsr.execute("SELECT BWTGXZ FROM RSLINE"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row not in bwtgxz:
-        ms="线表第"+ str(i) +'行，保温套管性质填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxb("BWTGXZ","RSLINE",bwtgxz,"线表","保温套管性质") 
 # 管材供应商
-i = 1
-for row in crsr.execute("SELECT GCGYS FROM RSLINE"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row =='None':
-        ms="线表第"+ str(i) +'行，管材供应商未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("GCGYS","RSLINE","None","线表","管材供应商")
 # 建设日期
-i = 1
-for row in crsr.execute("SELECT JSRQ FROM RSLINE"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row == 'None':
-        ms="线表第"+ str(i) +'行，建设日期未填，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("JSRQ","RSLINE","None","线表","建设日期")
 # 权属单位
-i = 1
-for row in crsr.execute("SELECT QSDW FROM RSLINE"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="线表第"+ str(i) +'行，权属单位未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("QSDW","RSLINE","None","线表","权属单位")
 # 施工单位
-i = 1
-for row in crsr.execute("SELECT SGDW FROM RSLINE"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='':
-        ms="线表第"+ str(i) +'行，施工单位未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("SGDW","RSLINE","None","线表","施工单位")
 # 管理部门
-i = 1
-for row in crsr.execute("SELECT GLBM FROM RSLINE"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row not in glbm:
-        ms="线表第"+ str(i) +'行，管理部门填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1 
+cxxb("GLBM","RSLINE",glbm,"线表","管理部门") 
 # 设计单位
-i = 1
-for row in crsr.execute("SELECT SJDW FROM RSLINE"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="线表第"+ str(i) +'行，设计单位未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("SJDW","RSLINE","None","线表","设计单位")
 # 监理单位
-i = 1
-for row in crsr.execute("SELECT JLDW FROM RSLINE"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="线表第"+ str(i) +'行，监理单位未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("JLDW","RSLINE","None","线表","监理单位")
 # 无损检测单位
-i = 1
-for row in crsr.execute("SELECT WSJCDW FROM RSLINE"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="线表第"+ str(i) +'行，无损检测单位未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("WSJCDW","RSLINE","None","线表","无损检测单位")
 # 探测日期
-i = 1
-for row in crsr.execute("SELECT TCRQ FROM RSLINE"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row == 'None':
-        ms="线表第"+ str(i) +'行，探测日期未填，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("TCRQ","RSLINE","None","线表","探测日期")
 # 探测单位
-i = 1
-for row in crsr.execute("SELECT TCDW FROM RSLINE"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="线表第"+ str(i) +'行，探测单位未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("TCDW","RSLINE","None","线表","探测单位")
 # 探测方式
-i = 1
-for row in crsr.execute("SELECT TCFS FROM RSLINE"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row not in tcfs:
-        ms="线表第"+ str(i) +'行，探测方式填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1 
+cxxb("TCFS","RSLINE",tcfs,"线表","探测方式") 
 
 
 
@@ -278,113 +114,29 @@ for row in crsr.execute("SELECT TCFS FROM RSLINE"):
 
 # 点表
 # 管线类型
-i = 1
-for row in crsr.execute("SELECT GXLX FROM RSPOINT"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row != '热水':
-        ms="点表第"+ str(i) +'行，管线类型填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxb("GXLX","RSPOINT",gxlx,"点表","管线类型")
 # 分类代码
-i = 1
-for row in crsr.execute("SELECT FLDM FROM RSPOINT"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，分类代码未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("FLDM","RSPOINT","None","点表","分类代码")
 # 特征附属物
-i = 1
-for row in crsr.execute("SELECT TZFSW FROM RSPOINT"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row not in tzfsw:
-        ms="点表第"+ str(i) +'行，特征附属物填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxb("TZFSW","RSPOINT",tzfsw,"点表","特征附属物")
 # 权属单位
-i = 1
-for row in crsr.execute("SELECT QSDW FROM RSPOINT"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，权属单位未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("QSDW","RSPOINT","None","点表","权属单位")
 # 建设日期
-i = 1
-for row in crsr.execute("SELECT JSRQ FROM RSPOINT"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，建设日期未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("JSRQ","RSPOINT","None","点表","建设日期")
 # 所在位置
-i = 1
-for row in crsr.execute("SELECT SZWZ FROM RSPOINT"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，所在位置未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("SZWZ","RSPOINT","None","点表","所在位置")
 # 探测日期
-i = 1
-for row in crsr.execute("SELECT TCRQ FROM RSPOINT"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，探测日期未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("TCRQ","RSPOINT","None","点表","探测日期")
 # 探测单位
-i = 1
-for row in crsr.execute("SELECT TCDW FROM RSPOINT"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，探测单位未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("TCDW","RSPOINT","None","点表","探测单位")
 # 探测方式
-i = 1
-for row in crsr.execute("SELECT TCFS FROM RSPOINT"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row not in tcfs:
-        ms="点表第"+ str(i) +'行，探测方式填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1 
+cxxb("TCFS","RSPOINT",tcfs,"点表","探测方式")
 # 管网级别
-i = 1
-for row in crsr.execute("SELECT GWJB FROM RSPOINT"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row not in gwjb:
-        ms="点表第"+ str(i) +'行，管网级别填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxb("GWJB","RSPOINT",gwjb,"点表","管网级别")
 # 热源名称
-i = 1
-for row in crsr.execute("SELECT RYMC FROM RSPOINT"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，热源名称填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("RYMC","RSPOINT","None","点表","热源名称")
 # 管理部门
-i = 1
-for row in crsr.execute("SELECT GLBM FROM RSPOINT"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row not in glbm:
-        ms="点表第"+ str(i) +'行，管理部门填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1 
+cxxb("GLBM","RSPOINT",glbm,"点表","管理部门")
 # 换热方式
 i = 1
 for row in crsr.execute("SELECT HRFS FROM RSPOINT"):
@@ -395,104 +147,27 @@ for row in crsr.execute("SELECT HRFS FROM RSPOINT"):
         cwxx.append(ms)
     i+=1
 # 设计单位
-i = 1
-for row in crsr.execute("SELECT SJDW FROM RSPOINT"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，设计单位未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("SJDW","RSPOINT","None","点表","设计单位")
 # 类型
-i=1
-for row in crsr.execute("SELECT LX FROM RSPOINT WHERE TZFSW='阀门' or TZFSW='补偿器'"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，阀门类型未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("LX","RSPOINT WHERE TZFSW='阀门' or TZFSW='补偿器'","None","点表","类型")
 # 规格
-i=1
-for row in crsr.execute("SELECT GG FROM RSPOINT WHERE TZFSW='阀门' or TZFSW='补偿器'"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，规格未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("GG","RSPOINT WHERE TZFSW='阀门' or TZFSW='补偿器'","None","点表","规格")
 # 设计压力
-i=1
-for row in crsr.execute("SELECT SJYL FROM RSPOINT WHERE TZFSW='阀门' or TZFSW='补偿器'"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，设计压力未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("SJYL","RSPOINT WHERE TZFSW='阀门' or TZFSW='补偿器'","None","点表","设计压力")
 # 补偿量
-i=1
-for row in crsr.execute("SELECT BCL FROM RSPOINT WHERE TZFSW='补偿器'"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，补偿量未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("BCL","RSPOINT WHERE TZFSW='补偿器'","None","点表","补偿量")
 # 曲率
-i=1
-for row in crsr.execute("SELECT QL FROM RSPOINT WHERE TZFSW='弯头'"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，曲率未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("QL","RSPOINT WHERE TZFSW='弯头'","None","点表","曲率")
 # 生产厂家
-i=1
-for row in crsr.execute("SELECT SCCJ FROM RSPOINT WHERE TZFSW='弯头' or TZFSW='补偿器' or TZFSW='阀门' or TZFSW='三通' or TZFSW='变径'"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，生产厂家未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("SCCJ","RSPOINT WHERE TZFSW='弯头' or TZFSW='补偿器' or TZFSW='阀门' or TZFSW='三通' or TZFSW='变径'","None","点表","生产厂家")
 # 施工单位
-i=1
-for row in crsr.execute("SELECT SGDW FROM RSPOINT"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，施工单位未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("SGDW","RSPOINT","None","点表","施工单位")
 # 监理单位
-i=1
-for row in crsr.execute("SELECT JLDW FROM RSPOINT"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，监理单位未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("JLDW","RSPOINT","None","点表","监理单位")
 # 运行主人
-i = 1
-for row in crsr.execute("SELECT GLBM FROM RSLINE"):
-    row=str(row).replace('\',)','')
-    row=row.replace('(\'','')
-    if row not in glbm:
-        ms="点表第"+ str(i) +'行，运行主人填写有误，请检查！'
-        cwxx.append(ms)
-    i+=1 
+cxxb("YXZR","RSPOINT",glbm,"点表","运行主人")
 # 井底深
-i=1
-for row in crsr.execute("SELECT JDS FROM RSPOINT WHERE TZFSW='检修井'"):
-    row=str(row).replace(',)','')
-    row=row.replace('(','')
-    if row =='None':
-        ms="点表第"+ str(i) +'行，井底深未填写，请检查！'
-        cwxx.append(ms)
-    i+=1
+cxxbwt("JDS","RSPOINT WHERE TZFSW='检修井'","None","点表","井底深")
 # 保存错误信息
 str = '\n'
 txt = open('错误信息.txt','w')
