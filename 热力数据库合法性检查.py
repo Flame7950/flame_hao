@@ -1,6 +1,7 @@
 # 本程序用于检查济南热力集团数据库数据合法性
 # 2023-6-3  By:黄浩   Tel:18660160658
-# 2023-6-11  增加函数，对前期重复代码进行了合并    By:黄浩   
+# 2023-6-11  增加函数，对前期重复代码进行了合并    By:黄浩  
+# 2023-9-3   修正提示文本中行错误问题 
 import os
 
 import pyodbc
@@ -20,23 +21,23 @@ crsr = cnxn.cursor()
 # 函数查询线表填写错误
 def cxxb(cxnr,cxb,shnr,ts1,ts2):
     i = 1
-    sql="SELECT "+cxnr+" FROM "+cxb
-    for row in crsr.execute(str(sql)):
-        row=str(row).replace('\',)','')
-        row=row.replace('(\'','')
+    sql="SELECT ID,"+cxnr+" FROM "+cxb
+    for row in crsr.execute(sql):
+        h=int(row[0])
+        row=row[1]
         if row not in shnr:
-            ms=ts1+"第"+ str(i) +"行，" + ts2 + "填写有误，请检查！"
+            ms=ts1+"第"+ str(h) +"行，" + ts2 + "填写有误，请检查！"
             cwxx.append(ms)
         i+=1
 # 函数查询线表未填
 def cxxbwt(cxnr,cxb,shnr,ts1,ts2):
     i = 1
-    sql="SELECT "+cxnr+" FROM "+cxb
-    for row in crsr.execute(str(sql)):
-        row=str(row).replace(',)','')
-        row=row.replace('(','')
-        if row == shnr:
-            ms=ts1+"第"+ str(i) +"行，" + ts2 + "未填，请检查！"
+    sql="SELECT ID,"+cxnr+" FROM "+cxb
+    for row in crsr.execute(sql):
+        h=int(row[0])
+        row=row[1]
+        if str(row) == shnr:
+            ms=ts1+"第"+ str(h) +"行，" + ts2 + "未填，请检查！"
             cwxx.append(ms)
         i+=1
 
@@ -46,13 +47,13 @@ cz=('钢','PERT')
 gwjb=('一次网','二次网')
 bwfs=('聚氨酯','岩棉')
 bwtgxz=('塑套钢','塑套')
-tzfsw=('阀门','焊口','弯头','供热交换站','入户','三通','变径','直线点','固支','补偿器','封头','检查井')
-gj=('40','50','65','80','100','125','150','200','250','300','350','400','450','500','600','700','800','900','1000','1200','1400','1500')
+tzfsw=('阀门','焊口','弯头','供热交换站','入户','三通','变径','直线点','固支','补偿器','盖堵','出地','检查井')
+gj=('25','32','40','50','65','80','100','125','150','200','250','300','350','400','450','500','600','700','800','900','1000','1200','1400','1500')
 yl=('1.6','2.0','2.5')
-glbm=('和道','和光','和礼','和智','和茂','和安','和忠','和勇','和义')
-tcfs=('竣工','普查')
-gxlx=("热水","测试")
-gxfldm=("50602001000","测试")
+glbm=('和道','和光','和礼','和智','和茂','和安','和忠','和勇','和义','和康','起步区项目部','燃机项目部')
+tcfs=('竣工','探测')
+gxlx=("热水",)
+gxfldm=("50602001000",)
 # 管线类型
 cxxb("GXLX","RSLINE",gxlx,"线表","管线类型")
 # 分类代码
@@ -169,6 +170,8 @@ cxxb("YXZR","RSPOINT",glbm,"点表","运行主人")
 # 井底深
 cxxbwt("JDS","RSPOINT WHERE TZFSW='检修井'","None","点表","井底深")
 # 保存错误信息
+
+cwxx.sort()
 str = '\n'
 txt = open('错误信息.txt','w')
 txt.write(str.join(cwxx))
